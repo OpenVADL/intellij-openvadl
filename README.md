@@ -9,6 +9,7 @@ a custom (pre-release) version of the openvadl-lsp.
 2) The lsp is currently the JVM version and not the native build. 
 3) You can only have a single instance of the lsp running on your machine.
 4) Diagnostics are reported in a single line (further investigation needed).
+5) No windows support.
 
 ## Build a release
 
