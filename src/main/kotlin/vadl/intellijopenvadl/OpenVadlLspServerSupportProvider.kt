@@ -65,7 +65,8 @@ private class OpenVadlLspServerDescriptor(project: Project) : ProjectWideLspServ
 
     override fun createCommandLine(): GeneralCommandLine {
         val lspRoot = extractLspServerToDisk()
-        val serverBinary = File(lspRoot, "bin/openvadl-lsp")
+        val serverBinaryName = if (System.getProperty("os.name").startsWith("Windows")) "openvadl-lsp.bat" else "openvadl-lsp"
+        val serverBinary = File(lspRoot, "bin/$serverBinaryName")
 
         // Make sure the binary is executable
         serverBinary.setExecutable(true)
