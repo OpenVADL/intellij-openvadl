@@ -4,10 +4,13 @@ import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.markdown.utils.convertMarkdownToHtml
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.IconLoader
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.platform.lsp.api.LspCommunicationChannel
+import com.intellij.platform.lsp.api.LspServer
 import com.intellij.platform.lsp.api.LspServerSupportProvider
 import com.intellij.platform.lsp.api.ProjectWideLspServerDescriptor
+import com.intellij.platform.lsp.api.lsWidget.LspServerWidgetItem
 import com.intellij.platform.syntax.impl.builder.computeWithDiagnostics
 import org.eclipse.lsp4j.ClientCapabilities
 import org.eclipse.lsp4j.DiagnosticCapabilities
@@ -18,12 +21,24 @@ import org.eclipse.lsp4j.PublishDiagnosticsCapabilities
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
+import javax.swing.Icon
+
+object OpenVadlIcons {
+    val PluginIcon: Icon = IconLoader.getIcon("/META-INF/pluginIcon.svg", OpenVadlIcons::class.java)
+}
 
 internal class OpenVadlLspServerSupportProvider : LspServerSupportProvider {
     override fun fileOpened(project: Project, file: VirtualFile, serverStarter: LspServerSupportProvider.LspServerStarter) {
         if (file.extension == "vadl") {
             serverStarter.ensureServerStarted(OpenVadlLspServerDescriptor(project))
         }
+    }
+
+    override fun createLspServerWidgetItem(lspServer: LspServer, currentFile: VirtualFile?): LspServerWidgetItem? {
+        return LspServerWidgetItem(
+            lspServer, currentFile,
+            OpenVadlIcons.PluginIcon, null
+        )
     }
 
 }
