@@ -15,3 +15,10 @@ a custom (pre-release) version of the openvadl-lsp.
 ```bash
 ./gradlew buildPlugin
 ```
+
+## Updating the LSP
+
+We update the underlying LSP quite frequently, so there is an automated script you can use.
+```bash
+uv run update_lsp.py
+```
