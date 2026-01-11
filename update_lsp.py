@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import shutil
 import textwrap
 import os
@@ -43,7 +44,7 @@ def build_lsp():
     run_cmd(["git", "pull",], repo_path)
 
     ## Build LSP
-    run_cmd(["./gradlew", ":vadl-lsp:installDist"], repo_path)
+    run_cmd(["./gradlew", ":vadl-lsp:jlink"], repo_path)
 
 
 def copy_lsp():
@@ -54,7 +55,7 @@ def copy_lsp():
     if os.path.exists(target_dir):
         shutil.rmtree(target_dir)
 
-    shutil.copytree(repo_path + "/vadl-lsp/build/install/openvadl-lsp", target_dir)
+    shutil.copytree(repo_path + "/vadl-lsp/build/image", target_dir)
 
 
 def update_metadata():
@@ -98,7 +99,7 @@ def publish():
     https://plugins.jetbrains.com/plugin/29659-openvadl/edit
     
     Build plugin is at:
-    build/idea-sandbox/IU-2025.3/plugins/intellij-openvadl/lib/
+    build/distributions/
     """).strip())
 
 def main():

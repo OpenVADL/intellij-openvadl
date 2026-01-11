@@ -88,8 +88,7 @@ private class OpenVadlLspServerDescriptor(project: Project) : ProjectWideLspServ
         pluginSystemDir.mkdirs()
 
         // Extract bin/ and lib/ directories
-        extractDirectory("openvadl-lsp/bin", File(pluginSystemDir, "bin"))
-        extractDirectory("openvadl-lsp/lib", File(pluginSystemDir, "lib"))
+        extractDirectory("openvadl-lsp", pluginSystemDir)
 
         return pluginSystemDir
     }
@@ -116,7 +115,15 @@ private class OpenVadlLspServerDescriptor(project: Project) : ProjectWideLspServ
                         targetFile.parentFile.mkdirs()
 
                         classLoader.getResourceAsStream(entry.name)?.use { input ->
-                            Files.copy(input, targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING)
+                            Files.copy(input, targetFile.toPath())
+                        }
+
+                        // Remain executable files as executable, manually needed because Javas resources don't preserve
+                        // them.
+                        if (relativePath.startsWith("bin/") ||
+                            relativePath.endsWith(".dylib") ||
+                            relativePath.endsWith(".so")) {
+                            targetFile.setExecutable(true)
                         }
                     }
                 }
@@ -130,7 +137,12 @@ private class OpenVadlLspServerDescriptor(project: Project) : ProjectWideLspServ
                     val relativePath = sourceFile.relativeTo(sourceDir).path
                     val targetFile = File(targetDir, relativePath)
                     targetFile.parentFile.mkdirs()
-                    Files.copy(sourceFile.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING)
+                    Files.copy(sourceFile.toPath(), targetFile.toPath())
+
+                    // Preserve executable flag from source file
+                    if (sourceFile.canExecute()) {
+                        targetFile.setExecutable(true)
+                    }
                 }
         }
     }
