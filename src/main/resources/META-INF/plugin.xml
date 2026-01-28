@@ -13,7 +13,24 @@
     <!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
          Guidelines: https://plugins.jetbrains.com/docs/marketplace/best-practices-for-listing.html#plugin-description -->
     <description><![CDATA[
-        Provides support for the OpenVADL language.
+        <p>Provides language support for the OpenVADL language in IntelliJ IDEA.</p>
+        <h2 id="features">Features</h2>
+        <ul>
+        <li>Syntax highlighting</li>
+        <li>Diagnostics</li>
+        </ul>
+        <h2 id="requirements">Requirements</h2>
+        <p>This plugin requires the OpenVADL LSP to be installed on your
+        system.</p>
+        <h2 id="quirks">Quirks</h2>
+        <ol type="1">
+        <li>This is an early implementation and at the moment mostly targeted
+        for OpenVADL developers.</li>
+        <li>You can only have a single instance of the lsp running on your
+        machine.</li>
+        <li>Diagnostics are reported in a single line (further investigation
+        needed).</li>
+        </ol>
     ]]></description>
 
     <!-- Product and plugin compatibility requirements.

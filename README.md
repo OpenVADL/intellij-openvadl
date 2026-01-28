@@ -1,4 +1,4 @@
-# IntelliJ  OpenVADL plugin
+# IntelliJ OpenVADL plugin
 
 Provides language support for the OpenVADL language in IntelliJ IDEA.
 
@@ -8,7 +8,7 @@ Provides language support for the OpenVADL language in IntelliJ IDEA.
 
 ## Requirements
 
-This plugin requires the OpenVADL LSP to be installed on your system. The `openvadl` command must be available in your PATH.
+This plugin requires the OpenVADL LSP to be installed on your system.
 
 ## Quirks
 
