@@ -2,7 +2,9 @@ package vadl.intellijopenvadl
 
 import com.intellij.openapi.fileChooser.FileChooserDescriptor
 import com.intellij.openapi.options.Configurable
+import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.ui.TextFieldWithBrowseButton
+import com.intellij.platform.lsp.api.LspServerManager
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.FormBuilder
 import com.intellij.util.ui.JBUI
@@ -58,8 +60,22 @@ class OpenVadlSettingsConfigurable : Configurable {
     }
 
     override fun apply() {
+        val pathChanged = customPathField?.text != settings.customOpenVadlPath
+
         customPathField?.text?.let {
             settings.customOpenVadlPath = it
+        }
+
+        // Restart LSP servers for all open projects if the path changed
+        if (pathChanged) {
+            restartLspServers()
+        }
+    }
+
+    private fun restartLspServers() {
+        ProjectManager.getInstance().openProjects.forEach { project ->
+            val lspServerManager = LspServerManager.getInstance(project)
+            lspServerManager.stopAndRestartIfNeeded(OpenVadlLspServerSupportProvider::class.java)
         }
     }
 
