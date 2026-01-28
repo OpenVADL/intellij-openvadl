@@ -87,8 +87,12 @@ private class OpenVadlLspServerDescriptor(project: Project) : ProjectWideLspServ
         val handler = super.startServerProcess().apply {
             addProcessListener(object : ProcessListener {
                 override fun processTerminated(event: ProcessEvent) {
-                    val verb = if (event.exitCode == 0) "terminated" else "crashed"
-                    showErrorNotification("OpenVADL server $verb", "The language server exited prematurely with code ${event.exitCode}.")
+                    if (event.exitCode != 0) {
+                        showErrorNotification(
+                            "OpenVADL server terminated",
+                            "The language server exited prematurely with code ${event.exitCode}."
+                        )
+                    }
                 }
             })
         }
