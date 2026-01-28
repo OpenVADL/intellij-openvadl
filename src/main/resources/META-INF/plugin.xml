@@ -24,5 +24,12 @@
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
     <extensions defaultExtensionNs="com.intellij">
         <platform.lsp.serverSupportProvider implementation="vadl.intellijopenvadl.OpenVadlLspServerSupportProvider"/>
+        <notificationGroup id="OpenVADL" displayType="BALLOON"/>
+        <applicationConfigurable
+            parentId="tools"
+            instance="vadl.intellijopenvadl.OpenVadlSettingsConfigurable"
+            id="vadl.intellijopenvadl.OpenVadlSettingsConfigurable"
+            displayName="OpenVADL"/>
+        <applicationService serviceImplementation="vadl.intellijopenvadl.OpenVadlSettings"/>
     </extensions>
 </idea-plugin>

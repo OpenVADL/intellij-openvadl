@@ -1,26 +1,25 @@
 package vadl.intellijopenvadl
 
 import com.intellij.execution.configurations.GeneralCommandLine
-import com.intellij.markdown.utils.convertMarkdownToHtml
-import com.intellij.openapi.application.PathManager
+import com.intellij.notification.NotificationAction
+import com.intellij.notification.NotificationGroupManager
+import com.intellij.notification.NotificationType
+import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.IconLoader
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.platform.lsp.api.LspCommunicationChannel
 import com.intellij.platform.lsp.api.LspServer
 import com.intellij.platform.lsp.api.LspServerSupportProvider
 import com.intellij.platform.lsp.api.ProjectWideLspServerDescriptor
 import com.intellij.platform.lsp.api.lsWidget.LspServerWidgetItem
-import com.intellij.platform.syntax.impl.builder.computeWithDiagnostics
 import org.eclipse.lsp4j.ClientCapabilities
 import org.eclipse.lsp4j.DiagnosticCapabilities
 import org.eclipse.lsp4j.DocumentHighlightCapabilities
-import org.eclipse.lsp4j.DocumentHighlightOptions
 import org.eclipse.lsp4j.MarkdownCapabilities
 import org.eclipse.lsp4j.PublishDiagnosticsCapabilities
 import java.io.File
-import java.nio.file.Files
-import java.nio.file.StandardCopyOption
 import javax.swing.Icon
 
 object OpenVadlIcons {
@@ -37,7 +36,8 @@ internal class OpenVadlLspServerSupportProvider : LspServerSupportProvider {
     override fun createLspServerWidgetItem(lspServer: LspServer, currentFile: VirtualFile?): LspServerWidgetItem? {
         return LspServerWidgetItem(
             lspServer, currentFile,
-            OpenVadlIcons.PluginIcon, null
+            OpenVadlIcons.PluginIcon,
+            OpenVadlSettingsConfigurable::class.java
         )
     }
 
@@ -64,87 +64,64 @@ private class OpenVadlLspServerDescriptor(project: Project) : ProjectWideLspServ
         }
 
     override fun createCommandLine(): GeneralCommandLine {
-        val lspRoot = extractLspServerToDisk()
-        val serverBinaryName = if (System.getProperty("os.name").startsWith("Windows")) "openvadl-lsp.bat" else "openvadl-lsp"
-        val serverBinary = File(lspRoot, "bin/$serverBinaryName")
+        val openVadlPath = findOpenVadlExecutable()
 
-        // Make sure the binary is executable
-        serverBinary.setExecutable(true)
+        if (openVadlPath == null) {
+            showNotAvailableNotification()
+            throw IllegalStateException("OpenVADL LSP server not found. Please install OpenVADL or configure a custom path in settings.")
+        }
 
-        // Start the server process (it will listen on TCP port 10999)
-        return GeneralCommandLine(serverBinary.absolutePath).apply {
-            withWorkDirectory(lspRoot)
+        return GeneralCommandLine(openVadlPath, "lsp")
+    }
+
+    private fun findOpenVadlExecutable(): String? {
+        val settings = OpenVadlSettings.getInstance()
+
+        // First, try custom path if configured
+        if (settings.customOpenVadlPath.isNotBlank()) {
+            val customFile = File(settings.customOpenVadlPath)
+            if (customFile.exists() && customFile.canExecute()) {
+                return customFile.absolutePath
+            }
+        }
+
+        // Fall back to PATH lookup
+        return findInPath()
+    }
+
+    private fun findInPath(): String? {
+        return try {
+            val pathEnv = System.getenv("PATH") ?: return null
+            val pathDirs = pathEnv.split(File.pathSeparator)
+            val executableName = if (SystemInfo.isWindows) "openvadl.exe" else "openvadl"
+
+            pathDirs.firstNotNullOfOrNull { dir ->
+                val executable = File(dir, executableName)
+                if (executable.exists() && executable.canExecute()) {
+                    executable.absolutePath
+                } else {
+                    null
+                }
+            }
+        } catch (e: Exception) {
+            null
         }
     }
 
-    private fun extractLspServerToDisk(): File {
-        // Create extraction directory in plugin system directory
-        val pluginSystemDir = File(System.getProperty("user.home"), ".openvadl-lsp")
+    private fun showNotAvailableNotification() {
+        val notification = NotificationGroupManager.getInstance()
+            .getNotificationGroup("OpenVADL")
+            .createNotification(
+                "OpenVADL Compiler Not Found",
+                "The 'openvadl' command was not found in your PATH. Please install OpenVADL or configure a custom path in settings.",
+                NotificationType.ERROR
+            )
 
-        // Extract LSP server files if not already extracted
-        if (pluginSystemDir.exists()) {
-            pluginSystemDir.deleteRecursively()
-        }
-        pluginSystemDir.mkdirs()
+        notification.addAction(NotificationAction.createSimple("Open Settings") {
+            ShowSettingsUtil.getInstance().showSettingsDialog(project, OpenVadlSettingsConfigurable::class.java)
+        })
 
-        // Extract bin/ and lib/ directories
-        extractDirectory("openvadl-lsp", pluginSystemDir)
-
-        return pluginSystemDir
-    }
-
-    // Extracts the resource path describing a directory and copies it to the provided target directory on disk.
-    private fun extractDirectory(resourcePath: String, targetDir: File) {
-        targetDir.mkdirs()
-
-        val classLoader = javaClass.classLoader
-        val resourceUrl = classLoader.getResource(resourcePath) ?: return
-
-        // Handle resources inside JAR files
-        if (resourceUrl.protocol == "jar") {
-            val jarPath = resourceUrl.path.substringAfter("file:").substringBefore("!")
-            val decodedJarPath = java.net.URLDecoder.decode(jarPath, "UTF-8")
-            val jarFile = java.util.jar.JarFile(decodedJarPath)
-
-            jarFile.entries().asSequence()
-                .filter { it.name.startsWith(resourcePath) && !it.isDirectory }
-                .forEach { entry ->
-                    val relativePath = entry.name.removePrefix("$resourcePath/")
-                    if (relativePath.isNotEmpty()) {
-                        val targetFile = File(targetDir, relativePath)
-                        targetFile.parentFile.mkdirs()
-
-                        classLoader.getResourceAsStream(entry.name)?.use { input ->
-                            Files.copy(input, targetFile.toPath())
-                        }
-
-                        // Remain executable files as executable, manually needed because Javas resources don't preserve
-                        // them.
-                        if (relativePath.startsWith("bin/") ||
-                            relativePath.endsWith(".dylib") ||
-                            relativePath.endsWith(".so")) {
-                            targetFile.setExecutable(true)
-                        }
-                    }
-                }
-            jarFile.close()
-        } else {
-            // Handle resources from filesystem (development mode)
-            val sourceDir = File(resourceUrl.toURI())
-            sourceDir.walkTopDown()
-                .filter { it.isFile }
-                .forEach { sourceFile ->
-                    val relativePath = sourceFile.relativeTo(sourceDir).path
-                    val targetFile = File(targetDir, relativePath)
-                    targetFile.parentFile.mkdirs()
-                    Files.copy(sourceFile.toPath(), targetFile.toPath())
-
-                    // Preserve executable flag from source file
-                    if (sourceFile.canExecute()) {
-                        targetFile.setExecutable(true)
-                    }
-                }
-        }
+        notification.notify(project)
     }
 
 
