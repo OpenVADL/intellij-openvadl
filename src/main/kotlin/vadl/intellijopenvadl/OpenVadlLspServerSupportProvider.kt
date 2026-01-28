@@ -27,7 +27,11 @@ object OpenVadlIcons {
 }
 
 internal class OpenVadlLspServerSupportProvider : LspServerSupportProvider {
-    override fun fileOpened(project: Project, file: VirtualFile, serverStarter: LspServerSupportProvider.LspServerStarter) {
+    override fun fileOpened(
+        project: Project,
+        file: VirtualFile,
+        serverStarter: LspServerSupportProvider.LspServerStarter
+    ) {
         if (file.extension == "vadl") {
             serverStarter.ensureServerStarted(OpenVadlLspServerDescriptor(project))
         }
@@ -67,11 +71,15 @@ private class OpenVadlLspServerDescriptor(project: Project) : ProjectWideLspServ
         val openVadlPath = findOpenVadlExecutable()
 
         if (openVadlPath == null) {
-            showNotAvailableNotification()
+            val settings = OpenVadlSettings.getInstance()
+            showCompilerNotFoundNotification(settings.customOpenVadlPath)
             throw IllegalStateException("OpenVADL LSP server not found. Please install OpenVADL or configure a custom path in settings.")
         }
 
-        return GeneralCommandLine(openVadlPath, "lsp")
+        return GeneralCommandLine(openVadlPath, "lsp").apply {
+            // Redirect stderr to stdout so all output (including error messages) is captured
+            withRedirectErrorStream(true)
+        }
     }
 
     private fun findOpenVadlExecutable(): String? {
@@ -108,21 +116,29 @@ private class OpenVadlLspServerDescriptor(project: Project) : ProjectWideLspServ
         }
     }
 
-    private fun showNotAvailableNotification() {
+
+    private fun showCompilerNotFoundNotification(customPath: String = "") = showErrorNotification(
+        "OpenVADL Compiler Not Found",
+        if (customPath.isNotBlank()) {
+            "The 'openvadl' compiler was not found at '$customPath'. Double check the provided path in the settings."
+        } else {
+            "The 'openvadl' compiler was not found in your PATH. Please install OpenVADL or configure a custom path in settings."
+        },
+        true
+    )
+
+    private fun showErrorNotification(title: String, message: String, withSettings: Boolean = false) {
         val notification = NotificationGroupManager.getInstance()
             .getNotificationGroup("OpenVADL")
-            .createNotification(
-                "OpenVADL Compiler Not Found",
-                "The 'openvadl' command was not found in your PATH. Please install OpenVADL or configure a custom path in settings.",
-                NotificationType.ERROR
-            )
+            .createNotification(title, message, NotificationType.ERROR)
 
-        notification.addAction(NotificationAction.createSimple("Open Settings") {
-            ShowSettingsUtil.getInstance().showSettingsDialog(project, OpenVadlSettingsConfigurable::class.java)
-        })
+        if (withSettings) {
+            notification.addAction(NotificationAction.createSimple("Open Settings") {
+                ShowSettingsUtil.getInstance().showSettingsDialog(project, OpenVadlSettingsConfigurable::class.java)
+            })
+        }
 
         notification.notify(project)
     }
-
 
 }
