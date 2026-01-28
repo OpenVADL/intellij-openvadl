@@ -37,7 +37,7 @@ class OpenVadlSettingsConfigurable : Configurable {
         val descriptionLabel = JBLabel(
             "<html>Specify a custom path to the OpenVADL executable.<br>" +
             "If left empty, the plugin will look for 'openvadl' in your system PATH.<br>" +
-            "If you have the openvadl repo locally run `./gradlew installDist`<br>and select `vadl-cli/build/install/openvadl/bin/openvadl`.</html>"
+            "If you have the openvadl repo locally run `./gradlew jlink`<br>and select `vadl-cli/build/image/bin/openvadl`.</html>"
         ).apply {
             foreground = JBUI.CurrentTheme.ContextHelp.FOREGROUND
             border = JBUI.Borders.emptyTop(5)

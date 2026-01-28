@@ -13,7 +13,7 @@
     <!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
          Guidelines: https://plugins.jetbrains.com/docs/marketplace/best-practices-for-listing.html#plugin-description -->
     <description><![CDATA[
-        Provides support for the OpenVALD language.
+        Provides support for the OpenVADL language.
     ]]></description>
 
     <!-- Product and plugin compatibility requirements.
