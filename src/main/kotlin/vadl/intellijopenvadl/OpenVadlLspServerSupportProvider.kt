@@ -1,12 +1,16 @@
 package vadl.intellijopenvadl
 
 import com.intellij.execution.configurations.GeneralCommandLine
+import com.intellij.execution.process.OSProcessHandler
+import com.intellij.execution.process.ProcessEvent
+import com.intellij.execution.process.ProcessListener
 import com.intellij.notification.NotificationAction
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.IconLoader
+import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.platform.lsp.api.LspCommunicationChannel
@@ -79,6 +83,18 @@ private class OpenVadlLspServerDescriptor(project: Project) : ProjectWideLspServ
         return GeneralCommandLine(openVadlPath, "lsp")
     }
 
+    override fun startServerProcess(): OSProcessHandler {
+        val handler = super.startServerProcess().apply {
+            addProcessListener(object : ProcessListener {
+                override fun processTerminated(event: ProcessEvent) {
+                    val verb = if (event.exitCode == 0) "terminated" else "crashed"
+                    showErrorNotification("OpenVADL server $verb", "The language server exited prematurely with code ${event.exitCode}.")
+                }
+            })
+        }
+        return handler;
+    }
+
     private fun findOpenVadlExecutable(): String? {
         val settings = OpenVadlSettings.getInstance()
 
@@ -115,7 +131,7 @@ private class OpenVadlLspServerDescriptor(project: Project) : ProjectWideLspServ
 
 
     private fun showCompilerNotFoundNotification(customPath: String = "") = showErrorNotification(
-        "OpenVADL Compiler Not Found",
+        "OpenVADL compiler not found",
         if (customPath.isNotBlank()) {
             "The 'openvadl' compiler was not found at '$customPath'. Double check the provided path in the settings."
         } else {
