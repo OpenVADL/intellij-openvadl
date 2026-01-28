@@ -76,10 +76,7 @@ private class OpenVadlLspServerDescriptor(project: Project) : ProjectWideLspServ
             throw IllegalStateException("OpenVADL LSP server not found. Please install OpenVADL or configure a custom path in settings.")
         }
 
-        return GeneralCommandLine(openVadlPath, "lsp").apply {
-            // Redirect stderr to stdout so all output (including error messages) is captured
-            withRedirectErrorStream(true)
-        }
+        return GeneralCommandLine(openVadlPath, "lsp")
     }
 
     private fun findOpenVadlExecutable(): String? {
