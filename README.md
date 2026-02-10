@@ -14,7 +14,6 @@ This plugin requires the OpenVADL LSP to be installed on your system.
 
 1) This is an early implementation and at the moment mostly targeted for OpenVADL developers.
 2) You can only have a single instance of the lsp running on your machine.
-3) Diagnostics are reported in a single line (further investigation needed).
 
 ## Build a release
 

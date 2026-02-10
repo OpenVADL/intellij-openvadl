@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "vadl"
-version = "0.0.5"
+version = "0.0.6"
 
 repositories {
     mavenCentral()
@@ -33,6 +33,16 @@ intellijPlatform {
         }
 
         changeNotes = """
+           <h1 id="section">0.0.6</h1>
+            <h2 id="new-features">New Features</h2>
+            <ul>
+            <li>Improve diagnostic formatting (no longer a single line in the popup)</li>
+            </ul>
+            <h2 id="requirements">Requirements</h2>
+            <ul>
+            <li>This plugin works only on IntelliJ &gt;= 2025.2.1</li>
+            <li>Local installation of the openvadl compiler</li>
+            </ul>
             <h1 id="005">0.0.5</h1>
             <h2 id="new-features">New Features</h2>
             <ul>

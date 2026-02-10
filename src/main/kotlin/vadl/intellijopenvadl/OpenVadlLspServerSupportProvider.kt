@@ -10,14 +10,17 @@ import com.intellij.notification.NotificationType
 import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.IconLoader
-import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.SystemInfo
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.platform.lsp.api.LspCommunicationChannel
 import com.intellij.platform.lsp.api.LspServer
 import com.intellij.platform.lsp.api.LspServerSupportProvider
 import com.intellij.platform.lsp.api.ProjectWideLspServerDescriptor
+import com.intellij.platform.lsp.api.customization.LspCustomization
+import com.intellij.platform.lsp.api.customization.LspDiagnosticsSupport
 import com.intellij.platform.lsp.api.lsWidget.LspServerWidgetItem
+import org.eclipse.lsp4j.Diagnostic
 import org.eclipse.lsp4j.ClientCapabilities
 import org.eclipse.lsp4j.DiagnosticCapabilities
 import org.eclipse.lsp4j.DocumentHighlightCapabilities
@@ -56,6 +59,27 @@ private class OpenVadlLspServerDescriptor(project: Project) : ProjectWideLspServ
         get() = LspCommunicationChannel.Socket(10999)
 
     override fun isSupportedFile(file: VirtualFile) = file.extension == "vadl"
+
+    override val lspCustomization: LspCustomization = object : LspCustomization() {
+        override val diagnosticsCustomizer = object : LspDiagnosticsSupport() {
+
+            /**
+             * Format the LSP diagnostic usable for the IDE.
+             * At the moment the LSP reports diagnostics in plain text but the IDE expects HTML, so this is the function
+             * that makes them work with each other.
+             *
+             * 1) It escapes all xml entries from the LSP diagnostic so that nothing get's wrongly interpreted as code.
+             * 2) The first line is always a title so let's put it in bold.
+             * 3) All linebreaks are replaced by break tags.
+             */
+            override fun getTooltip(diagnostic: Diagnostic): String {
+                val message =  StringUtil.escapeXmlEntities(diagnostic.message)
+                var lines = message.split("\n")
+                lines = listOf("<b>${lines.first()}</b>") + lines.drop(1)
+                return lines.joinToString("<br>")
+            }
+        }
+    }
 
     override val clientCapabilities: ClientCapabilities
         get() {

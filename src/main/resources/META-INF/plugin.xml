@@ -28,8 +28,6 @@
         for OpenVADL developers.</li>
         <li>You can only have a single instance of the lsp running on your
         machine.</li>
-        <li>Diagnostics are reported in a single line (further investigation
-        needed).</li>
         </ol>
     ]]></description>
 
