@@ -13,6 +13,9 @@ import com.intellij.util.xmlb.XmlSerializerUtil
 @Service
 class OpenVadlSettings : PersistentStateComponent<OpenVadlSettings> {
     var customOpenVadlPath: String = ""
+    var useTcpConnection: Boolean = false
+    var tcpPort: Int = 10999
+    var dontStartServer: Boolean = false
 
     override fun getState(): OpenVadlSettings = this
 

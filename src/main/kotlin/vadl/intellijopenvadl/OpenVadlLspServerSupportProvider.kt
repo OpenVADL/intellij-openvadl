@@ -56,7 +56,14 @@ internal class OpenVadlLspServerSupportProvider : LspServerSupportProvider {
 
 private class OpenVadlLspServerDescriptor(project: Project) : ProjectWideLspServerDescriptor(project, "OpenVADL") {
     override val lspCommunicationChannel: LspCommunicationChannel
-        get() = LspCommunicationChannel.Socket(10999)
+        get() {
+            val settings = OpenVadlSettings.getInstance()
+            return if (settings.useTcpConnection) {
+                LspCommunicationChannel.Socket(settings.tcpPort)
+            } else {
+                LspCommunicationChannel.StdIO
+            }
+        }
 
     override fun isSupportedFile(file: VirtualFile) = file.extension == "vadl"
 
@@ -96,15 +103,36 @@ private class OpenVadlLspServerDescriptor(project: Project) : ProjectWideLspServ
         }
 
     override fun createCommandLine(): GeneralCommandLine {
+        val settings = OpenVadlSettings.getInstance()
+
+        // If using TCP and don't start server, return a wild hack by spawning a useless process that runs forever
+        // with which we won't interact.
+        if (settings.useTcpConnection && settings.dontStartServer) {
+            return if (SystemInfo.isWindows) {
+                // Windows: Use pause command which waits for any key press
+                GeneralCommandLine("timeout", "/t", "-1")
+            } else {
+                // Unix: cat waits for stdin indefinitely
+                GeneralCommandLine("cat")
+            }
+        }
+
         val openVadlPath = findOpenVadlExecutable()
 
         if (openVadlPath == null) {
-            val settings = OpenVadlSettings.getInstance()
             showCompilerNotFoundNotification(settings.customOpenVadlPath)
             throw IllegalStateException("OpenVADL LSP server not found. Please install OpenVADL or configure a custom path in settings.")
         }
 
-        return GeneralCommandLine(openVadlPath, "lsp")
+        val commandLine = GeneralCommandLine(openVadlPath, "lsp")
+
+        // Add TCP port argument if TCP mode is enabled
+        if (settings.useTcpConnection) {
+            commandLine.addParameter("--port")
+            commandLine.addParameter(settings.tcpPort.toString())
+        }
+
+        return commandLine
     }
 
     override fun startServerProcess(): OSProcessHandler {
