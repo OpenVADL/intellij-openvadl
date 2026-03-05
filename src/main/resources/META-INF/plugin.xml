@@ -41,10 +41,15 @@
         <platform.lsp.serverSupportProvider implementation="vadl.intellijopenvadl.OpenVadlLspServerSupportProvider"/>
         <notificationGroup id="OpenVADL" displayType="BALLOON"/>
         <applicationConfigurable
-            parentId="tools"
-            instance="vadl.intellijopenvadl.OpenVadlSettingsConfigurable"
-            id="vadl.intellijopenvadl.OpenVadlSettingsConfigurable"
-            displayName="OpenVADL"/>
+                parentId="tools"
+                instance="vadl.intellijopenvadl.OpenVadlSettingsConfigurable"
+                id="vadl.intellijopenvadl.OpenVadlSettingsConfigurable"
+                displayName="OpenVADL"/>
         <applicationService serviceImplementation="vadl.intellijopenvadl.OpenVadlSettings"/>
+
+        <fileType name="VADL" language="VADL" extensions="vadl"
+                  implementationClass="vadl.intellijopenvadl.VadlFileType"/>
+        <lang.parserDefinition language="VADL" implementationClass="vadl.intellijopenvadl.psi.VadlParserDefinition"/>
+        <multiHostInjector implementation="vadl.intellijopenvadl.VadlLanguageInjector"/>
     </extensions>
 </idea-plugin>
