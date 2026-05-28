@@ -27,6 +27,8 @@ import org.eclipse.lsp4j.DocumentHighlightCapabilities
 import org.eclipse.lsp4j.MarkdownCapabilities
 import org.eclipse.lsp4j.PublishDiagnosticsCapabilities
 import java.io.File
+import java.time.Duration
+import java.time.Instant
 import javax.swing.Icon
 
 object OpenVadlIcons {
@@ -124,6 +126,9 @@ private class OpenVadlLspServerDescriptor(project: Project) : ProjectWideLspServ
             throw IllegalStateException("OpenVADL LSP server not found. Please install OpenVADL or configure a custom path in settings.")
         }
 
+        // Check if the compiler is outdated (older than 2 weeks)
+        checkCompilerAge(openVadlPath)
+
         val commandLine = GeneralCommandLine(openVadlPath, "lsp")
 
         // Disable syntax highlighting from LSP as we use TextMate grammar instead
@@ -211,6 +216,44 @@ private class OpenVadlLspServerDescriptor(project: Project) : ProjectWideLspServ
         }
 
         notification.notify(project)
+    }
+
+    /**
+     * Checks if the compiler binary is older than 2 weeks and shows a warning notification if so.
+     * @param openVadlPath The path to the openvadl compiler binary
+     */
+    private fun checkCompilerAge(openVadlPath: String) {
+        val compilerFile = File(openVadlPath)
+        val lastModified = compilerFile.lastModified()
+
+
+        if (lastModified <= 0) {
+            // Could not determine modification date
+            return
+        }
+
+        val lastModifiedInstant = Instant.ofEpochMilli(lastModified)
+        val now = Instant.now()
+        val ageInDays = Duration.between(lastModifiedInstant, now).toDays()
+        
+        // Threshold: 14 days (2 weeks)
+        val thresholdDays = 14
+        
+        if (ageInDays > thresholdDays) {
+            val notification = NotificationGroupManager.getInstance()
+                .getNotificationGroup("OpenVADL")
+                .createNotification(
+                    "OpenVADL compiler is outdated",
+                    "Your OpenVADL compiler was last updated $ageInDays days ago. Please consider updating it by rebuilding from the latest source.",
+                    NotificationType.WARNING
+                )
+            
+            notification.addAction(NotificationAction.createSimple("Open Settings") {
+                ShowSettingsUtil.getInstance().showSettingsDialog(project, OpenVadlSettingsConfigurable::class.java)
+            })
+            
+            notification.notify(project)
+        }
     }
 
 }
