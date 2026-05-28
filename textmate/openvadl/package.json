@@ -1,0 +1,21 @@
+{
+  "name": "openvadl",
+  "displayName": "OpenVADL",
+  "description": "TextMate grammar for the OpenVADL language",
+  "contributes": {
+    "languages": [
+      {
+        "id": "openvadl",
+        "extensions": [".vadl"],
+        "aliases": ["OpenVADL", "vadl"]
+      }
+    ],
+    "grammars": [
+      {
+        "language": "openvadl",
+        "scopeName": "source.vadl",
+        "path": "./Syntaxes/openvadl.tmLanguage.json"
+      }
+    ]
+  }
+}
