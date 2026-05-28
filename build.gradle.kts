@@ -21,6 +21,7 @@ dependencies {
         testFramework(org.jetbrains.intellij.platform.gradle.TestFrameworkType.Platform)
 
         // Add plugin dependencies for compilation here:
+        bundledPlugin("org.jetbrains.plugins.textmate")
     }
 }
 
@@ -118,6 +119,15 @@ intellijPlatform {
 }
 
 tasks {
+    // Ship the TextMate grammar as a plain directory in the plugin root (not
+    // inside the jar) so OpenVadlTextMateBundleProvider can resolve it from a
+    // real filesystem path.
+    prepareSandbox {
+        from("textmate") {
+            into(pluginName.map { "$it/textmate" })
+        }
+    }
+
     // Set the JVM compatibility versions
     withType<JavaCompile> {
         sourceCompatibility = "21"

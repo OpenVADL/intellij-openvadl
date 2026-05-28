@@ -34,6 +34,7 @@
     <!-- Product and plugin compatibility requirements.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
     <depends>com.intellij.modules.lsp</depends>
+    <depends>org.jetbrains.plugins.textmate</depends>
 
     <!-- Extensions defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
@@ -46,5 +47,6 @@
             id="vadl.intellijopenvadl.OpenVadlSettingsConfigurable"
             displayName="OpenVADL"/>
         <applicationService serviceImplementation="vadl.intellijopenvadl.OpenVadlSettings"/>
+        <textmate.bundleProvider implementation="vadl.intellijopenvadl.OpenVadlTextMateBundleProvider"/>
     </extensions>
 </idea-plugin>
