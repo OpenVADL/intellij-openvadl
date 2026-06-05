@@ -1,6 +1,6 @@
 package vadl.intellijopenvadl
 
-import com.intellij.ide.plugins.PluginManagerCore
+import com.intellij.ide.plugins.PluginManager
 import com.intellij.openapi.extensions.PluginId
 import org.jetbrains.plugins.textmate.api.TextMateBundleProvider
 
@@ -14,7 +14,8 @@ import org.jetbrains.plugins.textmate.api.TextMateBundleProvider
  */
 class OpenVadlTextMateBundleProvider : TextMateBundleProvider {
     override fun getBundles(): List<TextMateBundleProvider.PluginBundle> {
-        val plugin = PluginManagerCore.getPlugin(PluginId.getId("vadl.intellij-openvadl"))
+        val plugin = PluginManager.getInstance()
+            .findEnabledPlugin(PluginId.getId("vadl.intellij-openvadl"))
             ?: return emptyList()
         val bundlePath = plugin.pluginPath.resolve("textmate").resolve("openvadl")
         return listOf(TextMateBundleProvider.PluginBundle("OpenVADL", bundlePath))
