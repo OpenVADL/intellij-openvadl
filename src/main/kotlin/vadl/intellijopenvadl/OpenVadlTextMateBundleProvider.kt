@@ -1,8 +1,9 @@
 package vadl.intellijopenvadl
 
-import com.intellij.ide.plugins.PluginManager
-import com.intellij.openapi.extensions.PluginId
+import com.intellij.openapi.application.PathManager
+import com.intellij.openapi.application.PluginPathManager
 import org.jetbrains.plugins.textmate.api.TextMateBundleProvider
+import kotlin.io.path.isDirectory
 
 /**
  * Registers the bundled OpenVADL TextMate grammar so that `.vadl` files get
@@ -14,10 +15,10 @@ import org.jetbrains.plugins.textmate.api.TextMateBundleProvider
  */
 class OpenVadlTextMateBundleProvider : TextMateBundleProvider {
     override fun getBundles(): List<TextMateBundleProvider.PluginBundle> {
-        val plugin = PluginManager.getInstance()
-            .findEnabledPlugin(PluginId.getId("vadl.intellij-openvadl"))
-            ?: return emptyList()
-        val bundlePath = plugin.pluginPath.resolve("textmate").resolve("openvadl")
+        val pluginRoot = PathManager.getPluginsDir().resolve("intellij-openvadl")
+            .takeIf { it.isDirectory() }
+            ?: PluginPathManager.getPluginHome("intellij-openvadl").toPath()
+        val bundlePath = pluginRoot.resolve("textmate").resolve("openvadl").normalize()
         return listOf(TextMateBundleProvider.PluginBundle("OpenVADL", bundlePath))
     }
 }

@@ -1,7 +1,9 @@
 {
   "name": "openvadl",
+  "version": "0.0.1",
   "displayName": "OpenVADL",
   "description": "TextMate grammar for the OpenVADL language",
+  "license": "Apache-2.0",
   "contributes": {
     "languages": [
       {
@@ -14,7 +16,7 @@
       {
         "language": "openvadl",
         "scopeName": "source.vadl",
-        "path": "./Syntaxes/openvadl.tmLanguage.json"
+        "path": "./syntaxes/openvadl.tmLanguage.json"
       }
     ]
   }
