@@ -146,6 +146,12 @@ intellijPlatform {
          IntelliJ 2025.3</p>
         """.trimIndent()
     }
+
+    pluginVerification {
+        ides {
+            recommended()
+        }
+    }
 }
 
 tasks {
