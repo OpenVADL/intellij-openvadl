@@ -131,9 +131,6 @@ private class OpenVadlLspServerDescriptor(project: Project) : ProjectWideLspServ
 
         val commandLine = GeneralCommandLine(openVadlPath, "lsp")
 
-        // Disable syntax highlighting from LSP as we use TextMate grammar instead
-        commandLine.addParameter("--no-syntax-highlighting")
-
         // Add TCP port argument if TCP mode is enabled
         if (settings.useTcpConnection) {
             commandLine.addParameter("--port")
