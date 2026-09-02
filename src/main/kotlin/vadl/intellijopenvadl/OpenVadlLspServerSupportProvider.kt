@@ -144,6 +144,13 @@ private class OpenVadlLspServerDescriptor(project: Project) : ProjectWideLspServ
         val handler = super.startServerProcess().apply {
             addProcessListener(object : ProcessListener {
                 override fun processTerminated(event: ProcessEvent) {
+                    // A workaround for windows
+                    // Sometimes restarting the plugin on windows triggers this function with a negative number which
+                    // we don't want to display so this is a hack to avoid overreporting in that case.
+                    if (SystemInfo.isWindows && event.exitCode < 0) {
+                        return
+                    }
+
                     if (event.exitCode != 0) {
                         showErrorNotification(
                             "OpenVADL server terminated",
